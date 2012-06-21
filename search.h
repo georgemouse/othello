@@ -1,23 +1,26 @@
 #ifndef SEARCH_H
 #define SEARCH_H
 
+#include <unordered_map> 
 #include "board.h"
-#include <utility>
+
 typedef std::pair<int,int> Action;
 
-typedef struct ABPara{
-	Color caller;
-	Color player;
-	bool isMax;
-	const Board* state;
-	int alpha;
-	int beta;
+
+typedef struct{
+	int value;
+	int bestIndex;
 	int depth;
-}ABPara;
+}StateInfo;
+typedef std::unordered_map<long long,StateInfo> StateMap;
+typedef std::pair<long long,StateInfo> StateKeyValPair;
+
 
 class AISeacher{
 public:
-	static int maxDepth;
 	Action ABSearch(Color caller,Color player,bool isMax,const Board* state,int alpha,int beta,int depth);
+
+public:
+	static int maxDepth;
 };
 #endif

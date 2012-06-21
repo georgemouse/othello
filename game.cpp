@@ -68,7 +68,7 @@ Move& Game::machineSelect(Color my){
 	alpha=INT_MIN;
 	beta=INT_MAX;
 	//always start search as max node
-	int bestIndex=searcher.ABSearch(my,my,true,&board,alpha,beta,0).second;
+	int bestIndex=searcher.ABSearch(my,my,true,&board,alpha,beta,AISeacher::maxDepth).second;
 
 	return validMove[bestIndex];
 }
