@@ -1,7 +1,7 @@
 #ifndef BOARD_H
 #define BOARD_H
 
-#define rc(row,col) (row)*boardSize+col
+#define rc(row,col) (row)*sideLength+col
 #include <vector>
 #include <list>
 class Move;
@@ -46,7 +46,7 @@ class Board{
 	static MoveList XSquares;
 	static Hashkey* pieceHashKey;
 public:
-	Board(int boardSize=8);
+	Board(int sideLength=8);
 	Board(const Board& that);
 	~Board();
 	void initTranpositionTable();
@@ -59,6 +59,7 @@ public:
 	int positionCount(Color my,MoveList& positions) const;
 	void getValidMove(Color my,MoveList& validMove) const;
 	Color piece(Position p) const {return board[rc(p.x,p.y)];}
+	Color piece(int row,int col) const {return board[row*sideLength+col];}
 	bool hasClosure(Color my,Position pos,const Position& offset)const;
 	bool isValidPosition(const Position& p)const;
 	void doMove(Color my,Move& move);
@@ -67,8 +68,11 @@ public:
 	inline Color Rival(Color myColor)const{return (myColor==BLACK)?WHITE:BLACK;}
 
 
+	//note: adding any data member should check if copy constructor has copy that member
+public:
 	Hashkey boardHashkey;
 private:
+	int sideLength;
 	int boardSize;
 	Color* board;
 

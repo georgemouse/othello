@@ -21,18 +21,18 @@ long long ranGenkey(){
 Board::~Board(){
 	delete board;
 }
-Board::Board(int boardSize){
-	this->boardSize=boardSize;
-	int size=boardSize*boardSize;
-	board=new Color[size];
-	for(int i=0;i<size;++i){
+Board::Board(int sideLength){
+	this->sideLength=sideLength;
+	boardSize=sideLength*sideLength;
+	board=new Color[boardSize];
+	for(int i=0;i<boardSize;++i){
 		board[i]=EMPTY;
 	}
 
 	initTranpositionTable();
 	
-	int centerx=boardSize/2;
-	int centery=boardSize/2;
+	int centerx=sideLength/2;
+	int centery=sideLength/2;
 	setPiece(Position(centerx,centery),BLACK);
 	setPiece(Position(centerx-1,centery-1),BLACK);
 	setPiece(Position(centerx,centery-1),WHITE);
@@ -45,7 +45,7 @@ Board::Board(int boardSize){
 void Board::initTranpositionTable(){
 	//init tranposition table
 	boardHashkey=0;
-	int tableSize=2*boardSize*boardSize;
+	int tableSize=2*boardSize;
 	pieceHashKey=new Hashkey[tableSize];
 	//ensure that we use a 64 bit hash key
 	assert(sizeof(Hashkey)==8);
@@ -54,7 +54,7 @@ void Board::initTranpositionTable(){
 	}
 }
 void Board::initSpecialLocation(){
-	int last=boardSize-1;
+	int last=sideLength-1;
 	corners[0]=Move(0,0);
 	corners[1]=Move(0,last);
 	corners[2]=Move(last,0);
@@ -72,25 +72,26 @@ void Board::initSpecialLocation(){
 }
 
 Board::Board(const Board& that){
+	this->sideLength=that.sideLength;
 	this->boardSize=that.boardSize;
-	int size=boardSize*boardSize;
-	board=new Color[size];
-	memcpy(this->board,that.board,size);
+	this->boardHashkey=that.boardHashkey;
+	board=new Color[boardSize];
+	memcpy(this->board,that.board,boardSize);
 }
 
 void Board::print() const{
 	cout<<" ";
-	for(int col=0;col<boardSize;col++)
+	for(int col=0;col<sideLength;col++)
 		cout<<setw(2)<<col;
 	cout<<endl<<"--";
-	for(int col=0;col<boardSize;col++)
+	for(int col=0;col<sideLength;col++)
 		cout<<"--";
 	cout<<endl;
 
 
-	for(int row=0;row<boardSize;++row){
+	for(int row=0;row<sideLength;++row){
 		cout<<row<<"|";
-		for(int col=0;col<boardSize;++col)
+		for(int col=0;col<sideLength;++col)
 			cout<<left<<setw(2)<<board[rc(row,col)];
 		cout<<endl;
 	}
@@ -98,8 +99,8 @@ void Board::print() const{
 }
 
 bool Board::isFull() const{
-	for(int row=0;row<boardSize;++row)
-		for(int col=0;col<boardSize;++col)
+	for(int row=0;row<sideLength;++row)
+		for(int col=0;col<sideLength;++col)
 			if(board[rc(row,col)]==EMPTY)
 				return false;
 
@@ -173,8 +174,8 @@ int Board::positionCount(Color my,MoveList& positions) const{
 
 void Board::countPiece(int& blackPiece,int& whitePiece) const{
 	blackPiece=whitePiece=0;
-	for(int row=0;row<boardSize;++row){
-		for(int col=0;col<boardSize;++col){
+	for(int row=0;row<sideLength;++row){
+		for(int col=0;col<sideLength;++col){
 			if(board[rc(row,col)]==BLACK)
 				++blackPiece;
 			else if(board[rc(row,col)]==WHITE)
@@ -189,8 +190,8 @@ void Board::getValidMove(Color my,MoveList& validMove) const{
 		Position(0,-1),Position(0,1),
 		Position(1,-1),Position(1,0),Position(1,1)
 	};
-	for(int row=0;row<boardSize;++row){
-		for(int col=0;col<boardSize;++col){
+	for(int row=0;row<sideLength;++row){
+		for(int col=0;col<sideLength;++col){
 			Move m(row,col);
 			Position current(row,col);
 			if(piece(current)!=EMPTY)
@@ -231,7 +232,6 @@ Board* Board::result(Color my,Move& move) const{
 }
 
 void Board::setPiece(const Position& pos,Color c){
-	static int size=boardSize*boardSize;
 	assert(c!=EMPTY);
 
 	//handle hash table
@@ -240,8 +240,8 @@ void Board::setPiece(const Position& pos,Color c){
 	//if empty, just put c on(XOR one time)
 	//if not, take rival of c off and put c on
 	if(board[posind]!=EMPTY)
-		boardHashkey^=pieceHashKey[(!piece)*size+posind];
-	boardHashkey^=pieceHashKey[piece*size+posind];
+		boardHashkey^=pieceHashKey[(!piece)*boardSize+posind];
+	boardHashkey^=pieceHashKey[piece*boardSize+posind];
 
 	board[posind]=c;
 }
@@ -262,7 +262,7 @@ bool Board::hasClosure(Color my,Position pos,const Position& offset)const{
 }
 
 bool Board::isValidPosition(const Position& p) const{
-	if(p.x<0 || p.y<0 || p.x>=boardSize || p.y>=boardSize)
+	if(p.x<0 || p.y<0 || p.x>=sideLength || p.y>=sideLength)
 		return false;
 	return true;
 }
