@@ -2,25 +2,42 @@
 #include <pthread.h>
 #include <map>
 #include <algorithm>
+#include <assert.h>
 #include "search.h"
 #include "game.h"
 
+#define max(a,b) (a>b)?a:b
+#define min(a,b) (a<b)?a:b
 using namespace std;
 
 typedef pair<int,Board*> OrderState;
 
-StateMap stateMap;
-
+StateMap minStateMap;
+StateMap maxStateMap;
 
 bool moveOredring(const OrderState& s1,const OrderState& s2){
+	int score1,score2;
+	/*
 	StateMap::iterator got1=stateMap.find(s1.second->boardHashkey);
 	StateMap::iterator got2=stateMap.find(s2.second->boardHashkey);
-	if(got1!=stateMap.end() && got2!=stateMap.end() ){
-		return got1->second.value>got2->second.value;
-	}
-	return true;
-	
+	if(got1!=stateMap.end())
+		score1=got1->second.value;
+	else
+		score1=s1.second->eval(WHITE);
+
+	if(got2!=stateMap.end())
+		score2=got2->second.value;
+	else
+		score2=s2.second->eval(WHITE);
+		*/
+	score1=s1.second->eval(WHITE);
+	score2=s2.second->eval(WHITE);
+
+	return (score1>score2);
 }
+
+
+int cutcount=0;
 
 inline StateKeyValPair makeStatePair(const Board* state,int stateVal,int bestIndex,int stateDepth){
 	StateInfo i={stateVal,bestIndex,stateDepth};
@@ -32,6 +49,7 @@ inline StateKeyValPair makeStatePair(const Board* state,int stateVal,int bestInd
 //isMax:current node is max or min
 Action AISeacher::ABSearch(Color caller,Color player,bool isMax,const Board* state,int alpha,int beta,int depth){
 
+	StateMap& stateMap=isMax?maxStateMap:minStateMap;
 	//terminal test
 	if(depth==0){
 		int val=state->eval(caller);
@@ -46,9 +64,11 @@ Action AISeacher::ABSearch(Color caller,Color player,bool isMax,const Board* sta
 	if(got!=stateMap.end()){
 		const StateInfo& info=got->second;
 		if (info.depth>depth){
+			++cutcount;
 			return Action(info.value,info.bestIndex);
 		}
 	}
+
 
 	MoveList validMove;
 	state->getValidMove(player,validMove);
@@ -58,12 +78,12 @@ Action AISeacher::ABSearch(Color caller,Color player,bool isMax,const Board* sta
 	if(validMove.size()==0)
 		return Action(state->utility(caller),-1);
 
-	vector<OrderState>newStates(validMove.size());
+	vector<OrderState>newStates;
 	MoveList::iterator it=validMove.begin();
 	for(int i=0;it!=validMove.end();++it,++i){
-		newStates[i]=OrderState(i,state->result(player,*it));
+		newStates.push_back(OrderState(i,state->result(player,*it)));
 	}
-//	sort(newStates.begin(),newStates.end(),moveOredring);
+    //sort(newStates.begin(),newStates.end(),moveOredring);
 
 	for(int i=0;i!=newStates.size();++i){
 		Board* newState=newStates[i].second;
@@ -95,4 +115,5 @@ Action AISeacher::ABSearch(Color caller,Color player,bool isMax,const Board* sta
 	stateMap[state->boardHashkey]=StateInfo{val,bestMoveIndex,depth};
 	return Action(val,bestMoveIndex);
 }
+
 

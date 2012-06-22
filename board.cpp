@@ -8,6 +8,7 @@
 using namespace std;
 MoveList Board::corners=MoveList(4);
 MoveList Board::XSquares=MoveList(4);
+MoveList Board::XSquares2=MoveList(12);
 Hashkey* Board::pieceHashKey=0;
 
 //generate a 64 bit key
@@ -33,10 +34,16 @@ Board::Board(int sideLength){
 	
 	int centerx=sideLength/2;
 	int centery=sideLength/2;
+	/*
 	setPiece(Position(centerx,centery),BLACK);
 	setPiece(Position(centerx-1,centery-1),BLACK);
 	setPiece(Position(centerx,centery-1),WHITE);
 	setPiece(Position(centerx-1,centery),WHITE);
+	*/
+	setPiece(Position(centerx,centery),WHITE);
+	setPiece(Position(centerx-1,centery-1),WHITE);
+	setPiece(Position(centerx,centery-1),BLACK);
+	setPiece(Position(centerx-1,centery),BLACK);
 
 	initSpecialLocation();
 
@@ -80,9 +87,10 @@ Board::Board(const Board& that){
 }
 
 void Board::print() const{
-	cout<<" ";
+	cout<<"  ";
 	for(int col=0;col<sideLength;col++)
-		cout<<setw(2)<<col;
+//        cout<<setw(2)<<col;
+        cout<<setw(2)<<col+1;
 	cout<<endl<<"--";
 	for(int col=0;col<sideLength;col++)
 		cout<<"--";
@@ -90,7 +98,8 @@ void Board::print() const{
 
 
 	for(int row=0;row<sideLength;++row){
-		cout<<row<<"|";
+//        cout<<row<<"|";
+		cout<<row+1<<"|";
 		for(int col=0;col<sideLength;++col)
 			cout<<left<<setw(2)<<board[rc(row,col)];
 		cout<<endl;

@@ -37,7 +37,8 @@ void Game::loop(){
 			else{
 				Move& bestMove=machineSelect(player);
 				board.doMove(player,bestMove);
-				cout<<"choose ("<<bestMove.pos.x<<","<<bestMove.pos.y<<")"<<endl;
+//                cout<<"choose ("<<bestMove.pos.x<<","<<bestMove.pos.y<<")"<<endl;
+				cout<<"choose ("<<bestMove.pos.x+1<<","<<bestMove.pos.y+1<<")"<<endl;
 			}
 		}
 		
@@ -54,6 +55,10 @@ Move& Game::humanSelect(){
 	while(true){
 		cout<<"enter row & col:"<<endl;
 		cin>>row>>col;
+		/************/
+		--row;
+		--col;
+		/***/
 		MoveList::iterator it=validMove.begin();
 		for(;it!=validMove.end();++it){
 			if(row==(*it).pos.x && col==(*it).pos.y)
