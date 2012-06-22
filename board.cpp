@@ -263,6 +263,8 @@ bool Board::hasClosure(Color my,Position pos,const Position& offset)const{
 		return false;
 
 	while(isValidPosition(pos)){
+		if(piece(pos)==EMPTY)
+			return false;
 		if(piece(pos)==my)
 			return true;
 		pos+=offset;
