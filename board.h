@@ -11,6 +11,7 @@ typedef std::vector<Move> MoveList;
 typedef std::list<Position> PositionList;
 typedef long long int Hashkey;
 enum Piece{EMPTY='-',BLACK='X',WHITE='O'};
+enum GameState{OPENGAME,MIDGAME,ENDGAME};
 
 inline Color Rival(Color myColor){
 	return (myColor==BLACK)?WHITE:BLACK;
@@ -42,10 +43,6 @@ public:
 };
 
 class Board{
-	static MoveList corners;
-	static MoveList XSquares;
-	static MoveList Edges;
-	static Hashkey* pieceHashKey;
 public:
 	Board(int sideLength=8);
 	Board(const Board& that);
@@ -62,17 +59,26 @@ public:
 	Color piece(Position p) const {return board[rc(p.x,p.y)];}
 	Color piece(int row,int col) const {return board[row*sideLength+col];}
 	bool hasClosure(Color my,Position pos,const Position& offset)const;
-	bool isValidPosition(const Position& p)const;
+	inline bool isValidPosition(const Position& p)const;
 	void doMove(Color my,Move& move);
 	Board* result(Color my,Move& move) const;
 	void setPiece(const Position& pos,Color c);
 	inline Color Rival(Color myColor)const{return (myColor==BLACK)?WHITE:BLACK;}
+	GameState getState()const;
 
 
 	//note: adding any data member should check if copy constructor has copy that member
 public:
+	static MoveList corners;
+	static MoveList XSquares;
+	static MoveList Edges;
+	static Hashkey* pieceHashKey;
+
+	static int endGamePieceCount;
+public:
 	Hashkey boardHashkey;
 private:
+	int pieceCount;
 	int sideLength;
 	int boardSize;
 	Color* board;

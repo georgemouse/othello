@@ -10,6 +10,7 @@ MoveList Board::corners=MoveList(4);
 MoveList Board::XSquares=MoveList(12);
 MoveList Board::Edges=MoveList(30);
 Hashkey* Board::pieceHashKey=0;
+int Board::endGamePieceCount=15;
 
 //generate a 64 bit key
 long long ranGenkey(){
@@ -17,6 +18,15 @@ long long ranGenkey(){
 	key<<=31;
 	key+=rand();
 	return key;
+}
+
+GameState Board::getState()const{
+	if(pieceCount<10)
+		return OPENGAME;
+	else if(pieceCount>boardSize-endGamePieceCount)
+		return ENDGAME;
+	else 
+		return MIDGAME;
 }
 
 Board::~Board(){
@@ -38,6 +48,7 @@ Board::Board(int sideLength){
 	setPiece(Position(centerx-1,centery-1),BLACK);
 	setPiece(Position(centerx,centery-1),WHITE);
 	setPiece(Position(centerx-1,centery),WHITE);
+	pieceCount=4;
 
 	initSpecialLocation();
 
@@ -91,15 +102,15 @@ void Board::initSpecialLocation(){
 	XSquares[11].addOffset(Position(last,last));
 
 	//Edges
-	int x=0,y=0;
+	int col=0,row=0;
 	for(int i=0; ;i++)
 	{
-		Edges[i]=Move(y,x);
+		Edges[i]=Move(row,col);
 
-		if(y==last && x==last) break;
-		else if(x==last) { x=0;++y;}
-		else if(y==0||y==last) ++x;
-		else x=last;
+		if(row==last && col==last) break;
+		else if(col==last) { col=0;++row;}
+		else if(row==0||row==last) ++col;
+		else col=last;
 	}
 }
 
@@ -133,6 +144,8 @@ void Board::print() const{
 }
 
 bool Board::isFull() const{
+	return (pieceCount==boardSize);
+
 	for(int row=0;row<sideLength;++row)
 		for(int col=0;col<sideLength;++col)
 			if(board[rc(row,col)]==EMPTY)
@@ -259,6 +272,7 @@ void Board::doMove(Color my,Move& move){
 			pos+=*it;
 		}
 	}
+	++pieceCount;
 }
 
 Board* Board::result(Color my,Move& move) const{
@@ -299,7 +313,7 @@ bool Board::hasClosure(Color my,Position pos,const Position& offset)const{
 	return false;
 }
 
-bool Board::isValidPosition(const Position& p) const{
+inline bool Board::isValidPosition(const Position& p) const{
 	if(p.x<0 || p.y<0 || p.x>=sideLength || p.y>=sideLength)
 		return false;
 	return true;
