@@ -1,7 +1,7 @@
 TAR=othello
 SRC=main.cpp game.cpp board.cpp search.cpp
 OBJS=main.o game.o board.o search.o
-CFLAGS=-o3 -std=c++0x
+CFLAGS=-O3 -std=c++0x
 
 all:$(TAR)
 
