@@ -112,10 +112,9 @@ Board::Board(const Board& that){
 }
 
 void Board::print() const{
-	cout<<"  ";
+	cout<<" ";
 	for(int col=0;col<sideLength;col++)
-//        cout<<setw(2)<<col;
-        cout<<setw(2)<<col+1;
+		cout<<setw(2)<<col;
 	cout<<endl<<"--";
 	for(int col=0;col<sideLength;col++)
 		cout<<"--";
@@ -123,8 +122,7 @@ void Board::print() const{
 
 
 	for(int row=0;row<sideLength;++row){
-//        cout<<row<<"|";
-		cout<<row+1<<"|";
+		cout<<row<<"|";
 		for(int col=0;col<sideLength;++col)
 			cout<<left<<setw(2)<<board[rc(row,col)];
 		cout<<endl;
@@ -169,15 +167,13 @@ int Board::eval(Color caller) const{
 	int cornersCount=positionCount(caller,corners)-positionCount(rival,corners);
 	int edgeCount=positionCount(caller,Edges)-positionCount(rival,Edges);
 	int xcount=positionCount(caller,XSquares)-positionCount(rival,XSquares);
-	int bonus=0;
+	int bonus=edgeCount+3*cornersCount+(-2)*xcount;
 
 	if(caller==WHITE){
-		bonus=edgeCount+3*cornersCount+(-2)*xcount;
 		score=pieceScore+bonus;
 	}
 	else{
-		bonus=edgeCount+3*cornersCount+(-2)*xcount;
-		score=pieceScore+bonus;
+		score=pieceScore;
 	}
 	return score;
 
@@ -290,8 +286,6 @@ bool Board::hasClosure(Color my,Position pos,const Position& offset)const{
 		return false;
 
 	while(isValidPosition(pos)){
-		if(piece(pos)==EMPTY)
-			return false;
 		if(piece(pos)==my)
 			return true;
 		pos+=offset;

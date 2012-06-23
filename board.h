@@ -44,7 +44,7 @@ public:
 class Board{
 	static MoveList corners;
 	static MoveList XSquares;
-	static MoveList XSquares2;
+	static MoveList Edges;
 	static Hashkey* pieceHashKey;
 public:
 	Board(int sideLength=8);
