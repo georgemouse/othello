@@ -17,6 +17,14 @@ inline Color Rival(Color myColor){
 	return (myColor==BLACK)?WHITE:BLACK;
 }
 
+typedef struct HeuristicWeight{
+	int pieceW;
+	int cornerW;
+	int XSquareW;
+	int edgeW;
+	bool useEndgemeSolver;
+}HeuristicWeight;
+
 class Position{
 public:
 	short x;
@@ -75,6 +83,7 @@ public:
 	static Hashkey* pieceHashKey;
 
 	static int endGamePieceCount;
+	static HeuristicWeight heuristicWeight[2];
 public:
 	Hashkey boardHashkey;
 private:

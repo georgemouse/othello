@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "search.h"
 #include "board.h"
 using namespace std;
 MoveList Board::corners=MoveList(4);
@@ -11,6 +12,13 @@ MoveList Board::XSquares=MoveList(12);
 MoveList Board::Edges=MoveList(30);
 Hashkey* Board::pieceHashKey=0;
 int Board::endGamePieceCount=15;
+
+HeuristicWeight Board::heuristicWeight[2]=
+{
+	// pieceW	cornerW	XSquareW	edgeW	useEndgemeSolver
+		1,		3,		-2,			1,		false,	//black
+		1,		3,		-2,			1,		false	//white
+};
 
 //generate a 64 bit key
 long long ranGenkey(){
@@ -165,6 +173,8 @@ int Board::utility(Color caller) const{
 }
 
 int Board::eval(Color caller) const{
+	HeuristicWeight& weight=(caller==BLACK)?heuristicWeight[0]:heuristicWeight[1];
+
 	int score;
 	int blackPiece,whitePiece;
 	int pieceScore;
@@ -173,6 +183,10 @@ int Board::eval(Color caller) const{
 		pieceScore= blackPiece-whitePiece;
 	else
 		pieceScore= whitePiece-blackPiece;
+
+	if(weight.useEndgemeSolver && getState()==ENDGAME)
+		return pieceScore;
+
 
 	if(isFull())
 		return pieceScore;
@@ -184,14 +198,10 @@ int Board::eval(Color caller) const{
 	int xcount=positionCount(caller,XSquares)-positionCount(rival,XSquares);
 	int bonus=0;
 
-	if(caller==WHITE){
-		bonus=edgeCount+3*cornersCount+(-2)*xcount;
-		score=pieceScore+bonus;
-	}
-	else{
-		bonus=edgeCount+3*cornersCount+(-2)*xcount;
-		score=pieceScore+bonus;
-	}
+	score=	weight.pieceW*pieceScore+
+	  		weight.edgeW*edgeCount+
+	  		weight.cornerW*cornersCount+
+	  		weight.XSquareW*xcount;
 	return score;
 
 }
