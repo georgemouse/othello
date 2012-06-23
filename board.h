@@ -22,6 +22,7 @@ typedef struct HeuristicWeight{
 	int cornerW;
 	int XSquareW;
 	int edgeW;
+	int mobilityW;
 	bool useEndgemeSolver;
 }HeuristicWeight;
 
@@ -63,7 +64,7 @@ public:
 	int utility(Color caller) const;
 	int eval(Color caller) const;
 	int positionCount(Color my,MoveList& positions) const;
-	void getValidMove(Color my,MoveList& validMove) const;
+	void getValidMove(Color my,MoveList& validMove,bool justGetCount=false) const;
 	Color piece(Position p) const {return board[rc(p.x,p.y)];}
 	Color piece(int row,int col) const {return board[row*sideLength+col];}
 	bool hasClosure(Color my,Position pos,const Position& offset)const;

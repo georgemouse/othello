@@ -15,9 +15,10 @@ int Board::endGamePieceCount=15;
 
 HeuristicWeight Board::heuristicWeight[2]=
 {
-	// pieceW	cornerW	XSquareW	edgeW	useEndgemeSolver
-		1,		3,		-2,			1,		false,	//black
-		1,		3,		-2,			1,		false	//white
+	//1,		3,		-2,			1,		0,			false,	//black
+	// pieceW	cornerW	XSquareW	edgeW	mobilityW useEndgemeSolver
+		1,		3,		-2,			1,		0,			false,	//black
+		0,		3,		-2,			1,		1,			false	//white
 };
 
 //generate a 64 bit key
@@ -175,9 +176,15 @@ int Board::utility(Color caller) const{
 int Board::eval(Color caller) const{
 	HeuristicWeight& weight=(caller==BLACK)?heuristicWeight[0]:heuristicWeight[1];
 
-	int score;
+	int score=0;
+	int pieceScore=0;
+	int cornersScore=0;
+	int edgeScore=0;
+	int xScore=0;
+	int mobilityScore=0;
+
+
 	int blackPiece,whitePiece;
-	int pieceScore;
 	countPiece(blackPiece,whitePiece);
 	if(caller==BLACK)
 		pieceScore= blackPiece-whitePiece;
@@ -193,15 +200,23 @@ int Board::eval(Color caller) const{
 
 	Color rival=Rival(caller);
 
-	int cornersCount=positionCount(caller,corners)-positionCount(rival,corners);
-	int edgeCount=positionCount(caller,Edges)-positionCount(rival,Edges);
-	int xcount=positionCount(caller,XSquares)-positionCount(rival,XSquares);
-	int bonus=0;
+	cornersScore=positionCount(caller,corners)-positionCount(rival,corners);
+	edgeScore=positionCount(caller,Edges)-positionCount(rival,Edges);
+	xScore=positionCount(caller,XSquares)-positionCount(rival,XSquares);
+
+	if(weight.mobilityW!=0){
+		MoveList callerMovelist;
+		MoveList rivalMoveList;
+		getValidMove(caller,callerMovelist,true);
+		getValidMove(rival,rivalMoveList,true);
+		mobilityScore=callerMovelist.size()-rivalMoveList.size();
+	}
 
 	score=	weight.pieceW*pieceScore+
-	  		weight.edgeW*edgeCount+
-	  		weight.cornerW*cornersCount+
-	  		weight.XSquareW*xcount;
+	  		weight.edgeW*edgeScore+
+	  		weight.cornerW*cornersScore+
+	  		weight.XSquareW*xScore+
+			weight.mobilityW*mobilityScore;
 	return score;
 
 }
@@ -243,7 +258,7 @@ void Board::countPiece(int& blackPiece,int& whitePiece) const{
 	}
 }
 
-void Board::getValidMove(Color my,MoveList& validMove) const{
+void Board::getValidMove(Color my,MoveList& validMove,bool justGetCount) const{
 	static Position offsets[8]={
 		Position(-1,-1),Position(-1,0),Position(-1,1),
 		Position(0,-1),Position(0,1),
@@ -256,8 +271,11 @@ void Board::getValidMove(Color my,MoveList& validMove) const{
 			if(piece(current)!=EMPTY)
 				continue;
 			for(int i=0;i<8;++i){
-				if(hasClosure(my,current,offsets[i]))
+				if(hasClosure(my,current,offsets[i])){
 					m.addOffset(offsets[i]);
+					if(justGetCount)
+						break;
+				}
 			}
 			if(m.getOffsets().size()!=0)
 				validMove.push_back(m);
