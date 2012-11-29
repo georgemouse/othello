@@ -11,14 +11,11 @@ MoveList Board::corners=MoveList(4);
 MoveList Board::XSquares=MoveList(12);
 MoveList Board::Edges=MoveList(30);
 Hashkey* Board::pieceHashKey=0;
-int Board::endGamePieceCount=15;
+int Board::endGamePieceCount=18;
 
 HeuristicWeight Board::heuristicWeight[2]=
 {
-	//1,		3,		-2,			1,		0,			false,	//black
-	// pieceW	cornerW	XSquareW	edgeW	mobilityW useEndgemeSolver
-		1,		3,		-2,			1,		0,			false,	//black
-		0,		3,		-2,			1,		1,			false	//white
+#include "weight.txt"
 };
 
 //generate a 64 bit key
@@ -127,6 +124,7 @@ Board::Board(const Board& that){
 	this->sideLength=that.sideLength;
 	this->boardSize=that.boardSize;
 	this->boardHashkey=that.boardHashkey;
+	this->pieceCount=that.pieceCount;
 	board=new Color[boardSize];
 	memcpy(this->board,that.board,boardSize);
 }
@@ -182,8 +180,10 @@ int Board::eval(Color caller) const{
 	int edgeScore=0;
 	int xScore=0;
 	int mobilityScore=0;
+	int stablePieceScore=0;
 
 
+	//pieceScore
 	int blackPiece,whitePiece;
 	countPiece(blackPiece,whitePiece);
 	if(caller==BLACK)
@@ -191,19 +191,35 @@ int Board::eval(Color caller) const{
 	else
 		pieceScore= whitePiece-blackPiece;
 
-	if(weight.useEndgemeSolver && getState()==ENDGAME)
+	//endGameSolver
+	if(weight.useEndgemeSolver && getState()==ENDGAME){
 		return pieceScore;
+	}
 
 
+	
 	if(isFull())
 		return pieceScore;
 
+	//stability
+	if(weight.stablePieceW!=0){
+		int blackStablePiece,whiteStablePiece;
+		countStablePiece(blackStablePiece,whiteStablePiece);
+		if(caller==BLACK)
+			stablePieceScore=blackStablePiece-whiteStablePiece;
+		else
+			stablePieceScore=whiteStablePiece-blackStablePiece;
+	}
+
+
 	Color rival=Rival(caller);
 
+	//special position
 	cornersScore=positionCount(caller,corners)-positionCount(rival,corners);
 	edgeScore=positionCount(caller,Edges)-positionCount(rival,Edges);
 	xScore=positionCount(caller,XSquares)-positionCount(rival,XSquares);
 
+	//mobility
 	if(weight.mobilityW!=0){
 		MoveList callerMovelist;
 		MoveList rivalMoveList;
@@ -212,11 +228,13 @@ int Board::eval(Color caller) const{
 		mobilityScore=callerMovelist.size()-rivalMoveList.size();
 	}
 
+	//total
 	score=	weight.pieceW*pieceScore+
 	  		weight.edgeW*edgeScore+
 	  		weight.cornerW*cornersScore+
 	  		weight.XSquareW*xScore+
-			weight.mobilityW*mobilityScore;
+			weight.mobilityW*mobilityScore+
+			weight.stablePieceW*stablePieceScore;
 	return score;
 
 }
@@ -258,6 +276,94 @@ void Board::countPiece(int& blackPiece,int& whitePiece) const{
 	}
 }
 
+
+void Board::countStablePiece(int& blackPiece,int& whitePiece) const{
+	blackPiece=whitePiece=0;
+//	bool* isStable=new bool[boardSize];
+	for(int row=0;row<sideLength;++row){
+		for(int col=0;col<sideLength;++col){
+			if(piece(row,col)==EMPTY)
+				continue;
+			if(!isStable(row,col))
+				continue;
+			if(board[rc(row,col)]==BLACK)
+				++blackPiece;
+			else if(board[rc(row,col)]==WHITE)
+				++whitePiece;
+		}
+	}
+//	delete isStable;
+}
+
+/*
+void Board::countStablePiece(int& blackPiece,int& whitePiece) const{
+	static Position offsets[8]={
+		Position(-1,-1),Position(-1,0),Position(-1,1),
+		Position(0,-1),Position(0,1),
+		Position(1,-1),Position(1,0),Position(1,1)
+	};
+	static Position offsets[8]={
+		Position(-1,-1),Position(1,1),
+		Position(-1,0),Position(1,0),
+		Position(-1,1),Position(1,-1),
+		Position(0,-1),Position(0,1),
+	};
+	blackPiece=whitePiece=0;
+	bool* isStable=new bool[boardSize];
+	for(int row=0;row<sideLength;++row){
+		for(int col=0;col<sideLength;++col){
+			isStable[rc(row,col)]=false;
+			if(piece(row,col)==EMPTY)
+				continue;
+			isStable[rc(row,col)]=isStable(row,col);
+		}
+	}
+	int& thisPiece;
+	for(int row=0;row<sideLength;++row){
+		for(int col=0;col<sideLength;++col){
+			if(board[rc(row,col)]==BLACK)
+				thisPiece=blackPiece;
+			else if(board[rc(row,col)]==WHITE)
+				thisPiece=whitePiece;
+
+			if(isStable[rc(row,col)])
+				++thisPiece;
+			else{
+				bool oneDirOk
+				for(int i=0;i<8;++i){
+					if(isStable[rc(row+offsets[i],col+offsets[i].y)])
+
+				}
+			}
+		}
+	}
+	delete isStable;
+}
+*/
+
+bool Board::isStable(int row,int col)const{
+	static Position offsets[8]={
+		Position(-1,-1),Position(-1,0),Position(-1,1),
+		Position(0,-1),Position(0,1),
+		Position(1,-1),Position(1,0),Position(1,1)
+	};
+	for(int i=0;i<8;++i){
+		Position pos(row,col);
+		assert(piece(pos)!=EMPTY);
+		pos+=offsets[i];
+
+		while(isValidPosition(pos)){
+			if(piece(pos)==EMPTY)
+				return false;
+			pos+=offsets[i];
+		}
+	}
+	return true;
+}
+
+
+
+
 void Board::getValidMove(Color my,MoveList& validMove,bool justGetCount) const{
 	static Position offsets[8]={
 		Position(-1,-1),Position(-1,0),Position(-1,1),
@@ -296,6 +402,7 @@ void Board::doMove(Color my,Move& move){
 	for(;it!=offsets.end();++it){
 		pos=move.pos+(*it);
 		while(piece(pos)!=my){
+			assert(piece(pos)!=EMPTY);
 			setPiece(pos,my);
 			pos+=*it;
 		}

@@ -12,8 +12,9 @@ using namespace std;
 
 typedef pair<int,Board*> OrderState;
 
-StateMap minStateMap;
-StateMap maxStateMap;
+//StateMap minStateMap;
+//StateMap maxStateMap;
+StateMap stateMap;
 
 bool moveOredring(const OrderState& s1,const OrderState& s2){
 	int score1,score2;
@@ -49,7 +50,7 @@ inline StateKeyValPair makeStatePair(const Board* state,int stateVal,int bestInd
 //isMax:current node is max or min
 Action AISeacher::ABSearch(Color caller,Color player,bool isMax,const Board* state,int alpha,int beta,int depth){
 
-	StateMap& stateMap=isMax?maxStateMap:minStateMap;
+//    StateMap& stateMap=isMax?maxStateMap:minStateMap;
 	//terminal test
 	if(depth==0){
 		int val=state->eval(caller);
@@ -65,6 +66,7 @@ Action AISeacher::ABSearch(Color caller,Color player,bool isMax,const Board* sta
 		const StateInfo& info=got->second;
 		if (info.depth>depth){
 			++cutcount;
+			cout<<depth<<endl;
 			return Action(info.value,info.bestIndex);
 		}
 	}
@@ -76,7 +78,7 @@ Action AISeacher::ABSearch(Color caller,Color player,bool isMax,const Board* sta
 	Color rival=Rival(player);
 
 	if(validMove.size()==0)
-		return Action(state->utility(caller),-1);
+		return Action(state->eval(caller),-1);
 
 	vector<OrderState>newStates;
 	MoveList::iterator it=validMove.begin();

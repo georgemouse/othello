@@ -1,4 +1,0 @@
-
-	// pieceW	cornerW	XSquareW	edgeW	useEndgemeSolver
-		1,		3,		-2,			1,		false,
-		1,		3,		-2,			1,		false

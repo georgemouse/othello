@@ -23,6 +23,7 @@ typedef struct HeuristicWeight{
 	int XSquareW;
 	int edgeW;
 	int mobilityW;
+	int stablePieceW;
 	bool useEndgemeSolver;
 }HeuristicWeight;
 
@@ -61,6 +62,8 @@ public:
 	void print() const;
 	void countPiece(int& blackPiece,int& whitePiece) const;
 	bool isFull() const;
+	void countStablePiece(int& blackPiece,int& whitePiece) const;
+	bool isStable(int row,int col)const;
 	int utility(Color caller) const;
 	int eval(Color caller) const;
 	int positionCount(Color my,MoveList& positions) const;

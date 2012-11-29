@@ -7,6 +7,10 @@ all:$(TAR)
 
 othello:$(OBJS)
 	g++ $(CFLAGS) -o $@ $(OBJS) -lpthread
+
+board.o: board.cpp weight.txt
+	g++  $(CFLAGS) -c -o $@ $<
+
 %.o: %.cpp
 	g++  $(CFLAGS) -c -o $@ $<
 

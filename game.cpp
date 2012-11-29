@@ -7,6 +7,8 @@ using namespace std;
 char cls[]={0x1b,'[','2','J'};
 
 
+extern int cutcount;
+
 void Game::loop(){
 	Color player=BLACK;
 	//human always starts first
